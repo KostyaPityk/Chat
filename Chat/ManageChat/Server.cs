@@ -96,13 +96,15 @@ namespace ManageChat
 
         public string GetLastMessage()
         {
-            string result = string.Empty;
+            string result = "///////////////////////////////////////////" + "\n";
 
+           
             foreach(var i in this.collectionsMessage)
             {
                 result += i + "\n";
             }
 
+            result += "///////////////////////////////////////////" + "\n";
             return result;
         }
     }

@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Linq;
+using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using System.Threading;
 
 
 namespace ClientConsole
@@ -16,43 +20,51 @@ namespace ClientConsole
 
         static void Main(string[] args)
         {
-            Console.Write("Введите свое имя: ");
-            userName = Console.ReadLine();
-            client = new TcpClient();
-            try
-            {
-                client.Connect(host, port);
-                stream = client.GetStream();
+            while(true)
+            { 
+                try
+                {
+                        userName = Guid.NewGuid().ToString();
+                        client = new TcpClient();
+                        client.Connect(host, port);
+                        stream = client.GetStream();
 
-                string message = userName;
-                byte[] data = Encoding.Unicode.GetBytes(message);
-                stream.Write(data, 0, data.Length);
+                        string message = userName;
+                        byte[] data = Encoding.Unicode.GetBytes(message);
+                        stream.Write(data, 0, data.Length);
 
 
-                Task receiveThread = new Task(ReceiveMessage);
-                receiveThread.Start();
-                Console.WriteLine("Добро пожаловать, {0}", userName);
-                SendMessage();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            finally
-            {
-                Disconnect();
+                        Task receiveThread = new Task(ReceiveMessage);
+                        receiveThread.Start();
+                        Console.WriteLine("Добро пожаловать, {0}", userName);
+                        SendMessage();    
+                       
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                finally
+                { 
+                    Disconnect();
+                }
+                Thread.Sleep(1000);
             }
         }
 
         static void SendMessage()
         {
-            Console.WriteLine("Введите сообщение: ");
 
-            while (true)
+            string message = string.Empty;
+            var messages = GetMessages();
+
+            foreach (var item in messages)
             {
-                string message = Console.ReadLine();
+                message = item;
+                Console.WriteLine(message);
                 byte[] data = Encoding.Unicode.GetBytes(message);
                 stream.Write(data, 0, data.Length);
+                Thread.Sleep(1000);
             }
         }
 
@@ -77,9 +89,6 @@ namespace ClientConsole
                 }
                 catch
                 {
-                    Console.WriteLine("Подключение прервано!");
-                    Console.ReadLine();
-                    Disconnect();
                 }
             }
         }
@@ -90,7 +99,27 @@ namespace ClientConsole
                 stream.Close();
             if (client != null)
                 client.Close();
-            Environment.Exit(0);
+        }
+        private static List<string> GetMessages(string fileName = "Message.txt")
+        {
+            List<string> result = new List<string>();
+            List<string> messages = new List<string>();
+
+            using (StreamReader file = new StreamReader(fileName))
+            {
+                while (!file.EndOfStream)
+                {
+                    messages.Add(file.ReadLine());
+                }
+            }
+            Random random = new Random();
+            int countMessage = random.Next(1, messages.Count());
+
+            for (int i = 0; i < countMessage; i++)
+            {
+                result.Add(messages[random.Next(1, messages.Count())]);
+            }
+            return result;
         }
     }
 }

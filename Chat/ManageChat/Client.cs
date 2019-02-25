@@ -42,6 +42,8 @@ namespace ManageChat
                     try
                     {
                         message = GetMessage();
+                        if (message == string.Empty)
+                            continue;
                         message = String.Format("{0}: {1}", userName, message);
 
                         AddForMessageCollections(message, server.collectionsMessage);
